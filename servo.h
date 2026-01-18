@@ -1,9 +1,3 @@
-/*
- * servo.h
- *
- *  Created on: 2025Äê4ÔÂ6ÈÕ
- *      Author: ÁñĞÇÓî
- */
 
 #ifndef CODE_SERVO_H_
 #define CODE_SERVO_H_

@@ -1,9 +1,4 @@
-/*
- * servo.c
- *
- *  Created on: 2025Äê4ÔÂ6ÈÕ
- *      Author: ÁñĞÇÓî
- */
+
 
 
 #include"servo.h"
