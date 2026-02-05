@@ -23,9 +23,9 @@
 
 if ($debugfile -eq "")
 {
-& "D:\IARUSE\common\bin\cspybat" -f "D:\BISAIBANBENA\CYT4BB7_Library-master(1)\CYT4BB7_Library-master\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.general.xcl" --backend -f "D:\BISAIBANBENA\CYT4BB7_Library-master(1)\CYT4BB7_Library-master\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.driver.xcl" 
+& "D:\IARUSE\common\bin\cspybat" -f "D:\xczcz\21th-Wheel_Leg\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.general.xcl" --backend -f "D:\xczcz\21th-Wheel_Leg\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.driver.xcl" 
 }
 else
 {
-& "D:\IARUSE\common\bin\cspybat" -f "D:\BISAIBANBENA\CYT4BB7_Library-master(1)\CYT4BB7_Library-master\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.general.xcl" --debug_file=$debugfile --backend -f "D:\BISAIBANBENA\CYT4BB7_Library-master(1)\CYT4BB7_Library-master\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.driver.xcl" 
+& "D:\IARUSE\common\bin\cspybat" -f "D:\xczcz\21th-Wheel_Leg\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.general.xcl" --debug_file=$debugfile --backend -f "D:\xczcz\21th-Wheel_Leg\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\settings\cyt4bb7_cm_7_0.Debug.driver.xcl" 
 }
