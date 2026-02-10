@@ -22,6 +22,114 @@
  
 
 
+  
+  
+  // ============ 陀螺仪卡尔曼滤波器实现 ============
+
+// 初始化简单卡尔曼滤波器
+static void simple_kalman_init(simple_kalman_t *kf, float q, float r) {
+    kf->x = 0.0f;      // 初始状态估计
+    kf->p = 1.0f;      // 初始估计误差协方差（假设较大不确定度）
+    kf->q = q;         // 过程噪声协方差
+    kf->r = r;         // 测量噪声协方差
+    kf->k = 0.0f;      // 初始卡尔曼增益
+}
+
+// 初始化三轴卡尔曼滤波器
+void gyro_kalman_init(gyro_kalman_t *kf, float q, float r) {
+    // 三轴使用相同的噪声参数，但可以单独调整
+    simple_kalman_init(&kf->x, q, r);
+    simple_kalman_init(&kf->y, q, r);
+    
+    // YAW轴（Z轴）使用更保守的参数，减少漂移
+    simple_kalman_init(&kf->z, q * 0.5f, r * 2.0f);
+}
+
+// 简单卡尔曼滤波器更新（一维）
+float gyro_kalman_update(simple_kalman_t *kf, float measurement) {
+    // 1. 预测步骤
+    // 对于陀螺仪，我们假设角速度变化较慢，状态转移矩阵A=1
+    // 预测状态: x = x (保持不变)
+    // 预测误差协方差: p = p + q
+    kf->p = kf->p + kf->q;
+    
+    // 2. 更新步骤
+    // 计算卡尔曼增益: k = p / (p + r)
+    kf->k = kf->p / (kf->p + kf->r);
+    
+    // 更新状态估计: x = x + k * (measurement - x)
+    kf->x = kf->x + kf->k * (measurement - kf->x);
+    
+    // 更新误差协方差: p = (1 - k) * p
+    kf->p = (1.0f - kf->k) * kf->p;
+    
+    // 防止协方差过小（数值稳定性）
+    if (kf->p < 0.0001f) {
+        kf->p = 0.0001f;
+    }
+    
+    return kf->x;  // 返回滤波后的角速度
+}
+
+// 应用卡尔曼滤波器到三轴陀螺仪数据
+void gyro_kalman_filter_apply(gyro_kalman_t *kf, float *gx, float *gy, float *gz) {
+    if (gx != NULL) *gx = gyro_kalman_update(&kf->x, *gx);
+    if (gy != NULL) *gy = gyro_kalman_update(&kf->y, *gy);
+    if (gz != NULL) *gz = gyro_kalman_update(&kf->z, *gz);
+}
+
+// 全局卡尔曼滤波器实例
+static gyro_kalman_t gyro_kf;
+static int gyro_kf_initialized = 0;
+
+// 初始化陀螺仪卡尔曼滤波器（如果需要）
+static void init_gyro_kalman_filter(void) {
+    if (!gyro_kf_initialized) {
+        // 初始化卡尔曼滤波器
+        // 参数说明：
+        // Q（过程噪声）：陀螺仪真实角速度的变化率，值越小越信任模型
+        // R（测量噪声）：陀螺仪测量噪声，值越小越信任测量值
+        gyro_kalman_init(&gyro_kf, GYRO_KALMAN_Q, GYRO_KALMAN_R);
+        gyro_kf_initialized = 1;
+        
+        // 可选：打印初始化信息（调试用）
+        // printf("Gyro Kalman Filter Initialized: Q=%.6f, R=%.6f\n", 
+        //        GYRO_KALMAN_Q, GYRO_KALMAN_R);
+    }
+}
+
+// 自适应卡尔曼滤波器：根据运动状态调整参数
+static void adaptive_kalman_tuning(float gyro_magnitude) {
+    static float avg_gyro_mag = 0.0f;
+    static const float ALPHA = 0.01f;  // 平滑系数
+    
+    // 计算平均角速度幅度（滑动平均）
+    avg_gyro_mag = (1.0f - ALPHA) * avg_gyro_mag + ALPHA * gyro_magnitude;
+    
+    // 根据运动状态调整卡尔曼参数
+    if (avg_gyro_mag < 0.01f) {
+        // 静止状态：增加对模型的信任，减少测量噪声影响
+        gyro_kf.z.q = GYRO_KALMAN_Q * 0.1f;   // 减小过程噪声
+        gyro_kf.z.r = GYRO_KALMAN_R * 10.0f;  // 增大测量噪声（不信任测量）
+    } else if (avg_gyro_mag < 0.1f) {
+        // 慢速运动：平衡模型和测量
+        gyro_kf.z.q = GYRO_KALMAN_Q * 0.5f;
+        gyro_kf.z.r = GYRO_KALMAN_R * 2.0f;
+    } else {
+        // 快速运动：更信任测量值
+        gyro_kf.z.q = GYRO_KALMAN_Q * 2.0f;    // 增加过程噪声
+        gyro_kf.z.r = GYRO_KALMAN_R * 0.5f;    // 减小测量噪声
+    }
+}
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   /* 返回正弦值，x为角度值 */
   float sine(float x) // (-M_PI , M_PI) ???? 0.0005
@@ -118,9 +226,9 @@
       return data;
   }
 
- static float gyro_bias_x = 0, gyro_bias_y = 0, gyro_bias_z = 0;
+static float gyro_bias_x = 0, gyro_bias_y = 0, gyro_bias_z = 0;
 static int calibration_samples = 0;
-static const int CALIBRATION_COUNT = 1000;  // 校准采样次数
+static const int CALIBRATION_COUNT = 2000;  // 校准采样次数
 
 /* 陀螺仪零偏校准函数 */
 void gyro_calibration(void)
@@ -200,7 +308,7 @@ void gyro_calibration(void)
       //对误差进行积分，从而消除误差
      GyroIntegError.x += AccGravity.x * KiDef;
      GyroIntegError.y += AccGravity.y * KiDef;
-     GyroIntegError.z += AccGravity.z * KiDef*0.1;
+     GyroIntegError.z += AccGravity.z * KiDef*0.01;//0.001
      
      
      // ========== 积分限幅策略 ==========
@@ -254,9 +362,9 @@ void gyro_calibration(void)
     imu660rb_get_acc();
     imu660rb_get_gyro();
         //加速度计转换：原始数据->g为单位 （1g=9.8m/s）
-    IMU_TRAN.accX =(float)ACC_DATA_X;//ACC_GRAVITY;
-    IMU_TRAN.accY =(float)ACC_DATA_Y;//ACC_GRAVITY;
-    IMU_TRAN.accZ =(float)ACC_DATA_Z;//ACC_GRAVITY;
+    IMU_TRAN.accX =(float)ACC_DATA_X/ACC_TRANSITION_FACTOR;//ACC_GRAVITY;
+    IMU_TRAN.accY =(float)ACC_DATA_Y/ACC_TRANSITION_FACTOR;//ACC_GRAVITY;
+    IMU_TRAN.accZ =(float)ACC_DATA_Z/ACC_TRANSITION_FACTOR;//ACC_GRAVITY;
     
     // 在imu_get函数中对加速度计数据进行低通滤波
     static float alpha = 0.2f;  // 滤波系数
@@ -276,9 +384,9 @@ void gyro_calibration(void)
     static const float FILTER_ALPHA = 0.4f;
     
     
-    IMU_TRAN.gyroX=((float)(GYRO_DATA_X)/GYRO_TRANSITION_FACTOR * 0.01745329f);//0.01745329为转弧度系数
-    IMU_TRAN.gyroY=((float)(GYRO_DATA_Y)/GYRO_TRANSITION_FACTOR * 0.01745329f);
-    IMU_TRAN.gyroZ=((float)(GYRO_DATA_Z)/GYRO_TRANSITION_FACTOR * 0.01745329f);
+    IMU_TRAN.gyroX=(float)(GYRO_DATA_X/10*10)/GYRO_TRANSITION_FACTOR * 0.01745329f;//0.01745329为转弧度系数
+    IMU_TRAN.gyroY=(float)(GYRO_DATA_Y/10*10)/GYRO_TRANSITION_FACTOR * 0.01745329f;
+    IMU_TRAN.gyroZ=(float)(GYRO_DATA_Z/10*10)/GYRO_TRANSITION_FACTOR * 0.01745329f;
     
 
      if(first_run) {

@@ -61,8 +61,8 @@ int main(void)
     {
         // 此处编写需要循环执行的代码
 
-      printf("%f,%f,%f,%f,%f,%f,%d,%d\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.accX,IMU_TRAN.accY,IMU_TRAN.accZ,imu660rb_acc_x,imu660rb_acc_y);
-     // printf("%d,%d,%d,%f,%f,%f\n",imu660rb_gyro_x,imu660rb_gyro_y,imu660rb_gyro_z,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
+      printf("%f,%f,%f,%f,%f,%f\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
+    //  printf("%d,%d,%d,%f,%f,%f\n",imu660rb_gyro_x,imu660rb_gyro_y,imu660rb_gyro_z,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
       
       system_delay_ms(10);
       

@@ -43,8 +43,13 @@
 void pit0_ch0_isr()                     // 定时器通道 0 周期中断服务函数      
 {
     pit_isr_flag_clear(PIT_CH0);
-  
-    imu_get();
+    static int  count1=0;
+    count1++;
+    if( count1%5==0)
+    {
+     imu_get();
+    }
+
     
 }
 

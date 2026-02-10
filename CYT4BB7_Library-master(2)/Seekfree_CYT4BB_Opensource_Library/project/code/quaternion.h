@@ -7,7 +7,7 @@
 #define INTEGRAL_LIMIT_Z 0.1f   // Z轴积分限幅，单位：弧度/秒
 #define MAX_INTEGRAL_ERROR 0.2f // 积分总误差限幅
 #define squa(Sq) (((float)Sq) * ((float)Sq))
-#define DT              (0.001)             //微分时间，一般取0.005
+#define DT              (0.005)             //微分时间，一般取0.005
 
 #define absu16(Math_X) ((Math_X) < 0 ? -(Math_X) : (Math_X))
 #define absFloat(Math_X) ((Math_X) < 0 ? -(Math_X) : (Math_X))
@@ -67,6 +67,49 @@ typedef struct _attitude_t
 float q_rsqrt(float number);
 void imu_get(void);
 void data_normalization(icm_data_t *p_icm, attitude_t *p_angle, float dt);
+
+
+#define GYRO_KALMAN_Q        0.001f   // 过程噪声协方差
+#define GYRO_KALMAN_R        0.01f    // 测量噪声协方差
+#define GYRO_KALMAN_DT       DT       // 采样时间
+
+// 简单卡尔曼滤波器结构体（一维，用于单个陀螺仪轴）
+typedef struct _simple_kalman_t {
+    float x;          // 状态估计值（滤波后的角速度）
+    float p;          // 估计误差协方差
+    float q;          // 过程噪声协方差
+    float r;          // 测量噪声协方差
+    float k;          // 卡尔曼增益
+} simple_kalman_t;
+
+// 三轴卡尔曼滤波器
+typedef struct _gyro_kalman_t {
+    simple_kalman_t x;  // X轴滤波器
+    simple_kalman_t y;  // Y轴滤波器
+    simple_kalman_t z;  // YAW轴滤波器（Z轴）
+} gyro_kalman_t;
+
+// ... 原有的结构体保持不变 ...
+
+// 陀螺仪卡尔曼滤波器函数声明
+extern void gyro_kalman_init(gyro_kalman_t *kf, float q, float r);
+extern float gyro_kalman_update(simple_kalman_t *kf, float measurement);
+extern void gyro_kalman_filter_apply(gyro_kalman_t *kf, float *gx, float *gy, float *gz);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif /* _QUATERNION_H_ */
 
