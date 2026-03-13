@@ -1,5 +1,6 @@
-D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\Debug_m7_0\BrowseInfo\user_8514941877209965082.dir\main_cm7_0.pbi: \
-  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\user\main_cm7_0.c \
+D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\Debug_m7_0\BrowseInfo\code_17896468042025673432.dir\key_start_system.pbi: \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\key_start_system.c \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\key_start_system.h \
   D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\..\..\..\libraries\zf_common\zf_common_headfile.h \
   D:\IARUSE\arm\inc\c\stdio.h D:\IARUSE\arm\inc\c\ycheck.h \
   D:\IARUSE\arm\inc\c\yvals.h D:\IARUSE\arm\inc\c\DLib_Defaults.h \
@@ -216,5 +217,13 @@ D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Lib
   D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\..\..\..\libraries\zf_device\zf_device_wireless_uart.h \
   D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\..\..\..\libraries\zf_components\seekfree_assistant.h \
   D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\..\..\..\libraries\zf_components\seekfree_assistant_interface.h \
-  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\..\..\code\quaternion.h \
-  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\iar\project_config\..\..\code\small_driver_uart_control.h
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\quaternion.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\small_driver_uart_control.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\small_driver_uart_control.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\balance_control.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\initialize.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\servo.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\balance_control.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\key_start_system.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\flash.h \
+  D:\xczcz\21th-Wheel_Leg\CYT4BB7_Library-master(2)\Seekfree_CYT4BB_Opensource_Library\project\code\param_tuning.h

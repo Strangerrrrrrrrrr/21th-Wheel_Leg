@@ -1429,10 +1429,40 @@
     <group>
         <name>code</name>
         <file>
+            <name>$PROJ_DIR$\..\..\code\balance_control.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\balance_control.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\initialize.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\initialize.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\motion_plan.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\motion_plan.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\param_tuning.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\param_tuning.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\code\quaternion.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\code\quaternion.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\servo.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\servo.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\code\small_driver_uart_control.c</name>

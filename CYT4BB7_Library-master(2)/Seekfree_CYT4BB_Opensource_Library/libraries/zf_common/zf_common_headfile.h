@@ -107,5 +107,10 @@
 
 #include "quaternion.h"
 #include "small_driver_uart_control.h"
-
+#include "balance_control.h"
+#include "initialize.h"
+#include "servo.h"
+#include "flash.h"
+#include "param_tuning.h"        
+#include "motion_plan.h"
 #endif

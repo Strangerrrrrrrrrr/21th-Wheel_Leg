@@ -49,15 +49,28 @@ void pit0_ch0_isr()                     // 定时器通道 0 周期中断服务函数
     {
      imu_get();
     }
-
+     callback();
     
 }
+
+
+
 
 void pit0_ch1_isr()                     // 定时器通道 1 周期中断服务函数      
 {
     pit_isr_flag_clear(PIT_CH1);
-    
+    key_scanner();
+    if(key_get_state(KEY_1) == KEY_SHORT_PRESS)
+    {
+       // 按键状态翻转：原本停机则启动，原本启动则紧急停机
+       if(Run_Flag == 0) {
+           Run_Flag = 1;
+       } else {
+           Run_Flag = 0;
+       }
+    }
 }
+
 
 void pit0_ch2_isr()                     // 定时器通道 2 周期中断服务函数      
 {
@@ -213,7 +226,7 @@ void uart4_isr (void)
     {
 
         uart_receiver_handler();                                                                // 串口接收机回调函数
-       
+        uart_control_callback();
     }
     else                                // 串口4发送中断
     {
