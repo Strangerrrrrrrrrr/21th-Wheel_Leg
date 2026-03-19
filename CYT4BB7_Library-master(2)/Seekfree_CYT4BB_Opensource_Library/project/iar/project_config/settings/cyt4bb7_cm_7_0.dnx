@@ -25,8 +25,8 @@
         <MultiCoreRunAll>0</MultiCoreRunAll>
     </Jet>
     <ArmDriver>
-        <EnableCache>1</EnableCache>
         <EnforceMemoryConfiguration>1</EnforceMemoryConfiguration>
+        <EnableCache>1</EnableCache>
     </ArmDriver>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -35,8 +35,8 @@
     <SWOManager>
         <SamplingDivider>8192</SamplingDivider>
         <OverrideClock>0</OverrideClock>
-        <CpuClock>1398101057</CpuClock>
-        <SwoClock>1381319470</SwoClock>
+        <CpuClock>2037539186</CpuClock>
+        <SwoClock>1869770844</SwoClock>
         <DataLogMode>0</DataLogMode>
         <ItmPortsEnabled>63</ItmPortsEnabled>
         <ItmTermIOPorts>1</ItmTermIOPorts>
@@ -84,6 +84,10 @@
         <EventLSU>0</EventLSU>
         <EventSLEEP>0</EventSLEEP>
     </SWOTraceWindow>
+    <TermIOLog>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+    </TermIOLog>
     <DisassembleMode>
         <mode>0</mode>
     </DisassembleMode>
@@ -92,12 +96,9 @@
         <Bp1>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\user\main_cm7_0.c}.75.10" 0 0 1 "" 0 "" 0</Bp1>
         <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\..\code\servo.c}.10.1" 0 0 1 "" 0 "" 0</Bp2>
         <Bp3>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\code\motion_plan.h}.22.6" 0 0 1 "" 0 "" 0</Bp3>
-        <Count>4</Count>
+        <Bp4>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\..\code\quaternion.h}.17.1" 0 0 1 "" 0 "" 0</Bp4>
+        <Count>5</Count>
     </Breakpoints2>
-    <TermIOLog>
-        <LoggingEnabled>_ 0</LoggingEnabled>
-        <LogFile>_ ""</LogFile>
-    </TermIOLog>
     <Aliases>
         <Count>0</Count>
         <SuppressDialog>0</SuppressDialog>

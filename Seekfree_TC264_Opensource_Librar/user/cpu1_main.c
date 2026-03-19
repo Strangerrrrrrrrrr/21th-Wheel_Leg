@@ -61,7 +61,7 @@ void core1_main(void)
 
 
         if(mt9v03x_finish_flag){
-                   Check_Zebra_Crossing();
+             
                    //Ñ¹ËõÍ¼Ïñ
                    compressimage();
                    //¶þÖµ»¯

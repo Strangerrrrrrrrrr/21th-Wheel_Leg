@@ -16,7 +16,7 @@ IMU660RB_Parameter_t  IMU660RB_Parameter;
 pid_v  pidv;   //结构体
 float speed_Temp=0;
 float speed_limit=0;
-float speedring_KP =5 ,  speedring_KI =0.18  ;//  float speedring_KP =-0.035 ,  speedring_KI =-0.0018 ;//  
+float speedring_KP =6 ,  speedring_KI =0.28  ;//  float speedring_KP =-0.035 ,  speedring_KI =-0.0018 ;//  
 float speed_Velocity (pid_v*k, float target, float actual_value)
 
 {
@@ -37,7 +37,7 @@ float speed_Velocity (pid_v*k, float target, float actual_value)
 //-------------------------------------------------------------------------------------------------------------------
 pid_J  pidJ;  //结构体
 float Angle_KP =400,Angle_KD =0.1 ;  //float Angle_KP =400,Angle_KD =1 ;
-float  Machine_Mid =5;
+float  Machine_Mid =-1;
 float Angle_KP_Temp =0 ;
 
 float Angle_Velocity (pid_J*k, float target, float actual_value)
@@ -174,14 +174,14 @@ void callback(void)
 //角速度环作用位置
       lunOUT  = Gyro_PIDVelocity(&pidJV,angleout,imu660rb_gyro_y);
 
-     // Left_OUT_Finally  = (int16)lunOUT;
-   //   Right_OUT_Finally =  -(int16)lunOUT;
-      Left_OUT_Finally  = (int16)(lunOUT + turn_out_global);
+    // Left_OUT_Finally  = (int16)lunOUT;
+    // Right_OUT_Finally =  -(int16)lunOUT;
+      Left_OUT_Finally  = (int16)((lunOUT*0.75) + turn_out_global);
       Right_OUT_Finally = (int16)(-lunOUT + turn_out_global); 
     // ==============================================================
     
     // 【新增】：执行运动状态机 (前进->转圈->前进)
-      motion_plan_tick();
+      //motion_plan_tick();
       
         if(Run_Flag)
     {

@@ -51,32 +51,47 @@ int main(void)
     debug_init();                       // 调试串口信息初始化
     // 此处编写用户代码 例如外设初始化代码等
        servo_init();
+       Run_Flag = 0;
        imu660rb_init();
        ips200_init(IPS200_TYPE_SPI);
       // ips200pro_init("测试", IPS200PRO_TITLE_BOTTOM, 30);
-       param_init_and_load();
+     //  param_init_and_load();
        printf("Please don't touch the car! Calibrating...\r\n");
        imu_calibration(); // <---- 这个神仙函数必须要调用！
        printf("Calibration Done!\r\n");
        pit_ms_init(PIT_CH0, 1);          // 1ms定时器（平衡控制）
        pit_ms_init(PIT_CH1, 10);         // 10ms定时器（按键扫描）
        key_init(10);
-
-  
-   
+       mt9v03x_init();
        small_driver_uart_init();
+       uart_receiver_init();
     // 此处编写用户代码 例如外设初始化代码等
     while(true)
     {
       // 此处编写需要循环执行的代码
       // param_ui_process();
-       printf("%f,%f,%f,%f,%f,%f\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
+      // printf("%f,%f,%f,%f,%f,%f\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
       // printf("%f,%d,%d,%f,%d,%f\n",speedout,steer_output_duty,error1,Encoder_pre,motor_value.receive_left_speed_data,IMU_TRAN.gyroZ);
        //small_driver_set_duty(500,500);
-         system_delay_ms(10);
+         //system_delay_ms(10);
+      // 循环执行遥控器任务
+         if(mt9v03x_finish_flag)
+         {
+            ips200_displayimage03x(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);
+           
+             mt9v03x_finish_flag=0;
+         }
+     //  remote_control_process(); 
+       //system_delay_ms(10); // 跑你的原逻辑
+      
+      
+      
+      
+      
       
         // 此处编写需要循环执行的代码
     }
-}
+
 
 // **************************** 代码区域 ****************************
+}

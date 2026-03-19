@@ -27,7 +27,7 @@ float YAW_KD = 0.1f;
 //-------------------------------------------------------------------------------------------------------------------
 static float yaw_closed_loop_control(float target_yaw, float current_yaw)
 {
-    float err = target_yaw - current_yaw;
+    float err =  - current_yaw;
     float output = YAW_KP * err - YAW_KD * IMU_TRAN.gyroZ;
     
     // 限制转弯最大输出，宁可转慢点也绝不让轮子打滑，否则转完必偏！

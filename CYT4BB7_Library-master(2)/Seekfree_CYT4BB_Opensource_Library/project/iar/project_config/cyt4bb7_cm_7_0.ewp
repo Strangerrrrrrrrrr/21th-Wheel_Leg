@@ -1128,12 +1128,6 @@
             <name>$PROJ_DIR$\..\..\code\initialize.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\code\motion_plan.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\code\motion_plan.h</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\..\code\param_tuning.c</name>
         </file>
         <file>
@@ -1144,6 +1138,12 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\code\quaternion.h</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\remote_control.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\remote_control.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\code\servo.c</name>
