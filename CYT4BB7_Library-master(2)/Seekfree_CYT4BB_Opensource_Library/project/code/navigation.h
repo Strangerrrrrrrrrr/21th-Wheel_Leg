@@ -1,60 +1,35 @@
-/*
- * nagivation.h
- *
- *  Created on: 2024年10月16日
- *      Author: Monst
- */
+#ifndef _NAVIGATION_H_ 
+#define _NAVIGATION_H_ 
 
-#ifndef _NAVIGATION_H_
-#define _NAVIGATION_H_
-#include "zf_common_headfile.h"
+#include "zf_common_headfile.h" 
+#include "quaternion.h"         
+#include "zf_driver_flash.h"    
 
-//*********************用户设置区域****************************//
-#define MaxSize 500    //flash存储的最大页面
+// ================== 导航系统参数配置 ==================
+#define MAX_WAYPOINTS              250         // 最大路径点数量（250个点刚好存满一页Flash）
+#define RECORD_INTERVAL_DISTANCE   1000.0f      // 【核心标定参数】：每隔多远记录一个点？(请根据实测5cm对应的脉冲数修改此值！)
+#define NAV_FLASH_PAGE             70          // 使用单片机内部Flash的第70页来保存数据
+#define NAV_FLASH_MAGIC_NUM        0xAA55AA55  // 魔法特征码
 
-#define Read_MaxSize 10000//最大读取设置，1w个应该是够了
+typedef struct {            
+    float yaw;              // 记录绝对连续航向角
+    float distance;         // 记录累计行驶的编码器物理距离
+} waypoint_t;               
 
-//参数范围 <0 - 47>
-#define Nag_End_Page 1      //flash中止页面
-#define Nag_Start_Page 45   //flah起始页面
+typedef enum {              
+    NAV_STATE_IDLE = 0,     // 待机模式
+    NAV_STATE_RECORDING,    // 手推录制模式 (电机失电)
+    NAV_STATE_PLAYBACK      // 自动发车回放模式 (电机通电闭环)
+} nav_state_e;              
 
-#define Nag_Set_mileage 2100 //里程计//5cm
-#define Nag_Prev 200    //前瞻
-#define Nag_Yaw angle_Z //陀螺仪读取出来的偏航角
+extern nav_state_e current_nav_state; 
+extern float nav_target_speed;        
+extern float nav_target_yaw;          
+extern uint16 waypoint_count;         
+extern float total_accumulated_distance; // 暴露给外部，方便你在屏幕或串口查看以标定 5cm 脉冲数
 
-#define L_Mileage CarSpeed.speed_L   //左轮编码器
-#define R_Mileage CarSpeed.speed_R //右轮编码器
-//********************************************************//
+void nav_init(void);                                            
+void nav_logic_tick(float current_enc_speed, float current_yaw);
+void nav_set_state(nav_state_e new_state);                      
 
-typedef struct{
-       float Final_Out; //最终输出
-       float Mileage_All;   //里程计数
-       float Angle_Run; //读取的偏航角
-       bool Nag_Stop_f; //惯导中止flag
-       uint8 Flash_read_f;//惯导读取flag
-       uint16 size; //惯导数组索引通用计数
-       uint16 Run_index;
-       uint16 Save_count;
-       uint16 Save_index;//保存的flag
-       uint8 Save_state;
-       uint8 End_f;//中止flag
-       //与flash相关的
-       uint8 Flash_page_index;//flash页面索引
-       uint8 Flash_Save_Page_Index;//flash保存页码索引
-       uint8 Nag_SystemRun_Index;   //惯导执行索引
-       //暂时未开发部分
-       int Prev_mile[Nag_Prev]; //前瞻
-}Nag;
-
-extern Nag N;   //整个变量的结构体，方便开发和移植
-extern int32 Nav_read[Read_MaxSize];//按5cm算的话,1000可以跑50m
-void Nag_Run(); //偏航角复现总函数
-void Run_Nag_GPS();//偏航角复现
-
-void NagFlashRead();   //Flash读取到目标数组。
-void Run_Nag_Save();    //偏航角读取函数
-void Nag_Read();    //偏航角读取总函数
-//****************************//
-void Init_Nag();    //这个是参数初始化与flash的缓冲区初始化，请放到函数开始。
-void Nag_System();  //这个是惯性导航最后的包装函数，请放到中断中。
-#endif /* _NAVIGATION_H_ */
+#endif

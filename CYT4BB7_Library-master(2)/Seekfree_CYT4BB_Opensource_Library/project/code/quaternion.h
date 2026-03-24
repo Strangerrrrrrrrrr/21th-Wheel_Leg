@@ -53,7 +53,7 @@ typedef struct _attitude_t                                      // ¶¨ÒåÅ·À­½Ç×ËÌ
 {                                                               // ½á¹¹Ìå¿ªÊ¼
     float roll;                                                 // ´æ·Åºá¹ö½Ç£¨×óÓÒÇãĞ±½Ç¶È£©
     float pitch;                                                // ´æ·Å¸©Ñö½Ç£¨Ç°ºóÇãĞ±½Ç¶È£¬Æ½ºâ³µºËĞÄ¿ØÖÆ½Ç£©
-    float yaw;                                                  // ´æ·ÅÆ«º½½Ç£¨³µÌåË®Æ½Ğı×ª½Ç¶È£©
+    float yaw;                                                  // ´æ·ÅÆ«º½½Ç£¨¹ßµ¼×¨ÓÃ£º-¡Ş µ½ +¡Ş µÄÎŞÏŞÁ¬Ğø½Ç£©
 } attitude_t;                                                   // ÃüÃû¸Ã½á¹¹ÌåÀàĞÍÎª attitude_t
 
 // ================== Íâ²¿È«¾Ö±äÁ¿ÉùÃ÷ ==================
@@ -62,7 +62,7 @@ extern attitude_t g_attitude;                                   // ÉùÃ÷Íâ²¿½á¹¹Ì
 
 // ================== Íâ²¿ºËĞÄº¯ÊıÉùÃ÷ ==================
 void imu_calibration(void);                                     // ÉùÃ÷ÍÓÂİÒÇ¾²Ö¹ÁãÆ«Ğ£×¼º¯Êı
-void reset_yaw_continuity(void);                                // ÉùÃ÷ÖØÖÃÆ«º½½ÇÁ¬Ğø»¯´¦Àí±êÖ¾µÄº¯Êı
+void reset_yaw_continuity(void);                                // ÉùÃ÷º½Ïò½ÇÖØÖÃº¯Êı (ÓÃÓÚÆğÅÜÏß¶ÔÆë0¶È)
 float q_rsqrt(float number);                                    // ÉùÃ÷¿ìËÙÆ½·½¸ùµ¹ÊıËã·¨º¯Êı£¨ÓÃÓÚÏòÁ¿¹éÒ»»¯£©
 void imu_get(void);                                             // ÉùÃ÷IMUÊı¾İ»ñÈ¡Óë´¦Àí×Üº¯Êı£¨ĞèÒªÔÚ5ms¶¨Ê±Æ÷ÖĞµ÷ÓÃ£©
 void data_normalization(icm_data_t *p_icm, attitude_t *p_angle, float dt); // ÉùÃ÷MahonyËÄÔªÊı×ËÌ¬½âËãºËĞÄº¯Êı

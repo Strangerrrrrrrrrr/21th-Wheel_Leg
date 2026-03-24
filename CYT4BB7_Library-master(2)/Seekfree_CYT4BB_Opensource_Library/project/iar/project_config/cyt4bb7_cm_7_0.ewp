@@ -1128,6 +1128,12 @@
             <name>$PROJ_DIR$\..\..\code\initialize.h</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\..\code\navigation.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\..\code\navigation.h</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\..\code\param_tuning.c</name>
         </file>
         <file>

@@ -1,5 +1,5 @@
 #include "quaternion.h"                                         // 引入四元数运算的头文件定义
-//花花草草猪小仙
+
 // ================== 四元数与姿态解算全局变量 ==================
 float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;               // 初始化四元数，q0为实部，默认代表无旋转(1,0,0,0)
 float vecx_Z = 0, vecy1_Z = 0, vecy2_Z = 0, vecz1_Z = 0, vecz2_Z = 0; // 定义计算欧拉角时所需的中间矩阵元素变量
@@ -12,16 +12,27 @@ float gyro_offset_x = 0.0f;                                     // 存放X轴陀螺仪
 float gyro_offset_y = 0.0f;                                     // 存放Y轴陀螺仪开机静止时的本底噪声偏差值
 float gyro_offset_z = 0.0f;                                     // 存放Z轴陀螺仪动态调整的零点偏差值
 
-// ================== 偏航角(Yaw)连续化处理静态变量 ==================
-static float last_yaw = 0.0f;                                   // 记录上一次解算出的原生偏航角，用于比对跳变
-static float yaw_offset = 0.0f;                                 // 记录因为跨越180度边界而产生的累计补偿偏移量
-static int first_yaw_flag = 1;                                  // 初始化标志位，1代表系统刚刚启动
+// ================== 惯导专用：偏航角(Yaw)连续化处理变量 ==================
+static float last_raw_yaw = 0.0f;                               // 记录上一次解算出的原生偏航角
+static float yaw_cumulative_offset = 0.0f;                      // 记录跨越180度边界产生的累计补偿量
+static int first_yaw_flag = 1;                                  // 开机首帧对齐标志位
 
 // ================== 数学常量定义 ==================
 const float MY_PI = 3.1415926535f;                              // 定义圆周率PI的常数值
 const float RtA = 57.2957795f;                                  // 弧度转角度常数 (180/PI)
 const float AtR = 0.0174532925f;                                // 角度转弧度常数 (PI/180)
 const float PI_2 = 1.570796f;                                   // 定义 PI/2 的常数值
+
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介     重置偏航角连续化处理标志 (常用于起跑前对齐)
+// 调用建议     在机器人上电稳定后，或开始执行路径规划前调用一次，可使当前车头朝向变为绝对的 0 度。
+//-------------------------------------------------------------------------------------------------------------------
+void reset_yaw_continuity(void)                                 
+{                                                               
+    first_yaw_flag = 1; 
+    yaw_cumulative_offset = 0.0f; 
+    last_raw_yaw = 0.0f;     
+}
 
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     陀螺仪静止零偏校准函数 
@@ -45,29 +56,6 @@ void imu_calibration(void)
     gyro_offset_x = (float)sum_gx / 500.0f;                     // 计算真正的静止绝对零偏
     gyro_offset_y = (float)sum_gy / 500.0f;                     
     gyro_offset_z = (float)sum_gz / 500.0f;                     
-}                                                               
-
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     偏航角连续化处理函数
-//-------------------------------------------------------------------------------------------------------------------
-static float apply_yaw_continuity(float raw_yaw)                
-{                                                               
-    if (first_yaw_flag)                                         
-    {                                                           
-        last_yaw = raw_yaw;                                     
-        first_yaw_flag = 0;                                     
-        return raw_yaw;                                         
-    }                                                           
-    float diff = raw_yaw - last_yaw;                            
-    if (diff > 180.0f) yaw_offset -= 360.0f;                    
-    else if (diff < -180.0f) yaw_offset += 360.0f;              
-    last_yaw = raw_yaw;                                         
-    return raw_yaw + yaw_offset;                                
-}                                                               
-
-void reset_yaw_continuity(void)                                 
-{                                                               
-    first_yaw_flag = 1; yaw_offset = 0.0f; last_yaw = 0.0f;     
 }                                                               
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -104,7 +92,7 @@ float q_rsqrt(float number)
 }                                                               
 
 //-------------------------------------------------------------------------------------------------------------------
-// 函数简介     从四元数中提取欧拉角
+// 函数简介     从四元数中提取欧拉角 (惯导专用：输出 -无穷 到 +无穷 的连续累计角)
 //-------------------------------------------------------------------------------------------------------------------
 static void get_angle(attitude_t *p_angle)                      
 {                                                               
@@ -116,8 +104,34 @@ static void get_angle(attitude_t *p_angle)
 
     g_attitude.pitch = -arcsinf1(vecx_Z) * RtA ;                
     g_attitude.roll  = atan2f(vecy1_Z ,vecy2_Z) * RtA  ;        
+    
+    // 1. 提取原生的偏航角 (输出范围是 -180度 到 +180度)
     float raw_yaw = atan2f(vecz1_Z , vecz2_Z) * RtA;            
-    g_attitude.yaw = apply_yaw_continuity(raw_yaw);             
+    
+    // 2. 开机首帧初始化，对齐历史数据
+    if (first_yaw_flag)                                         
+    {                                                           
+        last_raw_yaw = raw_yaw;                                     
+        first_yaw_flag = 0;                                     
+    }  
+    
+    // 3. 跨越边界检测与累计补偿 (神仙级连续算法)
+    float diff = raw_yaw - last_raw_yaw; 
+    
+    // 如果发现角度突变超过 180 度，说明跨越了 +180/-180 的分界线
+    if (diff > 180.0f) 
+    {
+        yaw_cumulative_offset -= 360.0f;                    
+    }
+    else if (diff < -180.0f) 
+    {
+        yaw_cumulative_offset += 360.0f;              
+    }
+    
+    last_raw_yaw = raw_yaw; // 更新历史状态
+    
+    // 4. 将原生角与累计补偿相加，得到无限连续的偏航角
+    g_attitude.yaw = raw_yaw + yaw_cumulative_offset;             
 }                                                               
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -148,7 +162,7 @@ void data_normalization(icm_data_t *p_icm, attitude_t *p_angle, float dt)
     AccGravity.x = (IMU_TRAN.accY * Gravity.z - IMU_TRAN.accZ * Gravity.y); 
     AccGravity.y = (IMU_TRAN.accZ * Gravity.x - IMU_TRAN.accX * Gravity.z); 
     
-    //切断Z轴加速度错误纠偏，防止线性运动强扭Yaw角
+    // 切断Z轴加速度错误纠偏，防止线性运动强扭Yaw角
     AccGravity.z = 0;                                                       
     
     // 4. PI误差积分
@@ -245,8 +259,6 @@ void imu_get(void)
         gyro_filtered_z = FILTER_ALPHA * gyro_filtered_z + (1.0f - FILTER_ALPHA) * gyro_z_rad;
         IMU_TRAN.gyroZ = gyro_filtered_z;
     }
-
-
     
     // 对 X 和 Y 轴照常进行平滑滤波
     gyro_filtered_x = FILTER_ALPHA * gyro_filtered_x + (1.0f - FILTER_ALPHA) * IMU_TRAN.gyroX;    

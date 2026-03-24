@@ -113,4 +113,5 @@
 #include "flash.h"
 #include "param_tuning.h"        
 #include "remote_control.h"
+#include "navigation.h" 
 #endif

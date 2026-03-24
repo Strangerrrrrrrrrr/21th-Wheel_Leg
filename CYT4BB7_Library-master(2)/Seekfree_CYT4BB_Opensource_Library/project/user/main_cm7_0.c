@@ -34,14 +34,6 @@
 ********************************************************************************************************************/
 
 #include "zf_common_headfile.h"
-// 打开新的工程或者工程移动了位置务必执行以下操作
-// 第一步 关闭上面所有打开的文件
-// 第二步 project->clean  等待下方进度条走完
-
-// 本例程是开源库空工程 可用作移植或者测试各类内外设
-// 本例程是开源库空工程 可用作移植或者测试各类内外设
-// 本例程是开源库空工程 可用作移植或者测试各类内外设
-
 // **************************** 代码区域 ****************************
 
 
@@ -50,47 +42,88 @@ int main(void)
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
     debug_init();                       // 调试串口信息初始化
     // 此处编写用户代码 例如外设初始化代码等
-       servo_init();
-       Run_Flag = 0;
-       imu660rb_init();
-       ips200_init(IPS200_TYPE_SPI);
-      // ips200pro_init("测试", IPS200PRO_TITLE_BOTTOM, 30);
-     //  param_init_and_load();
-       printf("Please don't touch the car! Calibrating...\r\n");
-       imu_calibration(); // <---- 这个神仙函数必须要调用！
-       printf("Calibration Done!\r\n");
-       pit_ms_init(PIT_CH0, 1);          // 1ms定时器（平衡控制）
-       pit_ms_init(PIT_CH1, 10);         // 10ms定时器（按键扫描）
-       key_init(10);
-       mt9v03x_init();
-       small_driver_uart_init();
-       uart_receiver_init();
+  
+         all_init();
+         int print_count = 0;
+   // int print_count = 0; // 定义一个打印计数器
+    
     // 此处编写用户代码 例如外设初始化代码等
     while(true)
     {
       // 此处编写需要循环执行的代码
       // param_ui_process();
-      // printf("%f,%f,%f,%f,%f,%f\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
+     // printf("%f,%f,%f,%f,%f,%f\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
       // printf("%f,%d,%d,%f,%d,%f\n",speedout,steer_output_duty,error1,Encoder_pre,motor_value.receive_left_speed_data,IMU_TRAN.gyroZ);
        //small_driver_set_duty(500,500);
-         //system_delay_ms(10);
+       //  system_delay_ms(10);
       // 循环执行遥控器任务
-         if(mt9v03x_finish_flag)
-         {
-            ips200_displayimage03x(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);
+         //  if(mt9v03x_finish_flag)
+        //   {
+        //     ips200_displayimage03x(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);
            
-             mt9v03x_finish_flag=0;
-         }
-     //  remote_control_process(); 
-       //system_delay_ms(10); // 跑你的原逻辑
-      
-      
-      
+         //      mt9v03x_finish_flag=0;
+        //   }
+       //remote_control_process(); 
+       
+       if (key_get_state(KEY_1) == KEY_SHORT_PRESS) 
+        {
+            if (current_nav_state == NAV_STATE_IDLE && waypoint_count > 0)
+            {
+                Run_Flag = 1;                      
+                nav_set_state(NAV_STATE_PLAYBACK); 
+            }
+            key_clear_state(KEY_1);                
+        }
+
+        if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
+        {
+            if (current_nav_state == NAV_STATE_IDLE)
+            {
+                Run_Flag = 0;                      
+                nav_set_state(NAV_STATE_RECORDING);
+            }
+            key_clear_state(KEY_2);                
+        }
+
+        if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
+        {
+            if (current_nav_state == NAV_STATE_RECORDING || current_nav_state == NAV_STATE_PLAYBACK)
+            {
+                Run_Flag = 0;                      
+                nav_set_state(NAV_STATE_IDLE);     // 会自动触发 Flash 保存
+            }
+            key_clear_state(KEY_3);                
+        }
+
+        // ======================= 屏幕 UI 刷新 =======================
+        if (current_nav_state == NAV_STATE_IDLE) {
+            ips200_set_color(RGB565_BLACK, RGB565_WHITE);
+            ips200_show_string(80, 40, "IDLE    "); 
+        } else if (current_nav_state == NAV_STATE_RECORDING) {
+            ips200_set_color(RGB565_RED, RGB565_WHITE); 
+            ips200_show_string(80, 40, "RECORD  ");
+        } else if (current_nav_state == NAV_STATE_PLAYBACK) {
+            ips200_set_color(RGB565_GREEN, RGB565_WHITE); 
+            ips200_show_string(80, 40, "PLAYBACK");
+        }
+
+        ips200_set_color(RGB565_BLACK, RGB565_WHITE);
+        ips200_show_uint(80, 70, waypoint_count, 4);
+
+        // ======================= 5cm 里程标定监测打印 =======================
+        print_count++;
+        if(print_count >= 500000) // 减速打印，根据你的主频可以自行调大调小
+        {
+            print_count = 0;
+            // 看着这个数字，推 5 厘米，看数字增加了多少，然后填入 navigation.h
+            printf("当前里程计数值: %f\r\n", total_accumulated_distance);
+        }
+    }
       
       
       
         // 此处编写需要循环执行的代码
-    }
+    
 
 
 // **************************** 代码区域 ****************************

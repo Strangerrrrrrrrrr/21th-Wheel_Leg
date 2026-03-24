@@ -1,174 +1,140 @@
+#include "navigation.h" 
 
+waypoint_t path_buffer[MAX_WAYPOINTS];          
+nav_state_e current_nav_state = NAV_STATE_IDLE; 
+uint16 waypoint_count = 0;                      
+float total_accumulated_distance = 0;           
+float last_recorded_distance = 0;               // 记录上一次打点时的里程
 
-#include "zf_common_headfile.h"
-#include "navigation.h"
+uint16 playback_index = 0;                      
+float nav_target_speed = 0.0f;                  
+float nav_target_yaw = 0.0f;                    
+float auto_playback_speed_setpoint =170.0f;    // 自动巡航发车速度
 
-int32 Nav_read[Read_MaxSize];//按5cm算的话,1000可以跑50m
-Nag N;
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     读取偏航角的线程函数
-// 参数说明     读取偏航角的线程函数，通过切换N.End_f来切换线程
-// 返回参数     void
-// 使用示例     用户无需调用
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void Nag_Read()
+// 把内存里的点全部打包存进内部Flash里
+static void simple_save_to_flash(void)
 {
-        switch(N.End_f)
+    flash_buffer_clear(); 
+
+    for(int i = 0; i < waypoint_count; i++) 
+    {
+        flash_union_buffer[i * 2].float_type = path_buffer[i].yaw;            
+        flash_union_buffer[i * 2 + 1].float_type = path_buffer[i].distance;  
+    }
+    
+    flash_union_buffer[510].int32_type = waypoint_count; 
+    flash_union_buffer[511].uint32_type = NAV_FLASH_MAGIC_NUM; 
+
+    flash_write_page_from_buffer(0, NAV_FLASH_PAGE, 512); 
+    printf("存点成功! 共记录了 %d 个点\r\n", waypoint_count); 
+}
+
+// 开机时自动从Flash读取上次没跑完的路径
+void nav_init(void)
+{
+    flash_read_page_to_buffer(0, NAV_FLASH_PAGE, 512); 
+    
+    if(flash_union_buffer[511].uint32_type == NAV_FLASH_MAGIC_NUM) 
+    {
+        waypoint_count = flash_union_buffer[510].int32_type; 
+        if(waypoint_count > MAX_WAYPOINTS) waypoint_count = MAX_WAYPOINTS; 
+        
+        for(int i = 0; i < waypoint_count; i++) 
         {
-            case 0:Run_Nag_Save();  //默认执行函数
-                break;
-            case 1:;
-                    flash_Nag_Write();  //写入最后一页，保证falsh存储满
-                    N.End_f++;
-                    break;
-            case 2://Buzzer_check(500);   //蜂鸣器确认执行
-                    N.End_f++;  //结束线程
-                    break;
+            path_buffer[i].yaw = flash_union_buffer[i * 2].float_type;          
+            path_buffer[i].distance = flash_union_buffer[i * 2 + 1].float_type; 
         }
+        printf("开机加载成功! 记忆中有 %d 个坐标点。\r\n", waypoint_count); 
+    } 
+    else 
+    {
+        waypoint_count = 0; 
+    }
 }
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     用于生成偏差计算
-// 参数说明     N.Final_Out为最终生成的偏差大小
-// 返回参数     void
-// 使用示例     用户无需调用
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void Nag_Run()
+
+// 状态机切换函数
+void nav_set_state(nav_state_e new_state)
 {
-    Run_Nag_GPS();  //偏航角读取复现
- if(N.Nag_Stop_f) //防止旋转
- {
-    N.Final_Out=0;
-    return;
-  }
-    N.Final_Out=angle_Z-N.Angle_Run;
-    
+    if (current_nav_state == new_state) return; 
+
+    if (current_nav_state == NAV_STATE_RECORDING && new_state == NAV_STATE_IDLE) 
+    {
+        simple_save_to_flash(); 
+    }
+
+    if (new_state == NAV_STATE_RECORDING) 
+    {
+        waypoint_count = 0;             
+        total_accumulated_distance = 0; 
+        last_recorded_distance = 0;     // 重新录制时归零
+        reset_yaw_continuity();         
+        printf("--- 开始手推定距存点，请推车! ---\r\n"); 
+    }
+
+    if (new_state == NAV_STATE_PLAYBACK) 
+    {
+        if (waypoint_count == 0) 
+        {
+            printf("警告: 还没有存点，无法发车！\r\n"); 
+            return; 
+        }
+        playback_index = 0;             
+        total_accumulated_distance = 0; 
+        reset_yaw_continuity();         
+        printf("--- 自动发车！重现路径 ---\r\n"); 
+    }
+
+    current_nav_state = new_state; 
 }
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     偏航角存入
-// 参数说明     将读取的YAW存储到flash中存储
-// 返回参数     void
-// 使用示例     用户无需调用
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void Run_Nag_Save()
+
+// 导航大脑心跳函数 (每20ms执行)
+void nav_logic_tick(float current_enc_speed, float current_yaw)
 {
-    N.Mileage_All+=(R_Mileage+L_Mileage)/2.0;//历程计读取，左右编码器，使用浮点数的话误差能保留下来
-    if(N.size > MaxSize)//当大于这页有的flash大小的时候，写入一次，防止重复写入
-    {
-        flash_Nag_Write();
-        N.size=0;   //索引重置为0从下一个缓冲区开始读取
-        N.Flash_page_index--;   //flash页面索引减小
-        zf_assert(N.Flash_page_index > Nag_End_Page);//防止越界报错
+    if (current_nav_state != NAV_STATE_IDLE) {
+        total_accumulated_distance += current_enc_speed; 
     }
 
-    if(N.Mileage_All >= Nag_Set_mileage)    //大于你的设定值的时候
+    // ================= 手推录制模式 (定距打点) =================
+    if (current_nav_state == NAV_STATE_RECORDING) 
     {
-       int32 Save=(int32)(Nag_Yaw*100); //读取的偏航角放大100倍，避免使用Float类型来存储
-       flash_union_buffer[N.size++].int32_type = Save;  //将偏航角写入缓冲区
-
-       N.Save_index++;
-
-
-       if(N.Mileage_All > 0) N.Mileage_All -= Nag_Set_mileage;//重置历程计数字//保存到flash
-       else N.Mileage_All += Nag_Set_mileage;//倒车
+        // 核心改造：当前里程和上次打点里程相差达到阈值，才丢下一颗“石子”
+        if (ABS(total_accumulated_distance - last_recorded_distance) >= RECORD_INTERVAL_DISTANCE) 
+        {
+            if (waypoint_count < MAX_WAYPOINTS) 
+            {
+                path_buffer[waypoint_count].yaw = current_yaw;                      
+                path_buffer[waypoint_count].distance = total_accumulated_distance;  
+                waypoint_count++; 
+                
+                last_recorded_distance = total_accumulated_distance; // 更新打点基准位置
+            }
+            else 
+            {
+                printf("内存已满，自动结束存点！\r\n"); 
+                nav_set_state(NAV_STATE_IDLE); 
+            }
+        }
     }
-
-}
-// 偏航角复现
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     偏航角复现
-// 参数说明     读取flash中存储的YAW
-// 返回参数     void
-// 使用示例     用户无需调用
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void Run_Nag_GPS()
-{
-    N.Mileage_All+=(int)((R_Mileage+L_Mileage)/2.0);//历程计读取，左右编码器，使用浮点数的话误差能保留下来
-    uint16 prospect=0;
-    if(N.Mileage_All >= Nag_Set_mileage)
+    // ================= 自动发车模式 =================
+    else if (current_nav_state == NAV_STATE_PLAYBACK) 
     {
-    if(N.Run_index> N.Save_index-2)
-    {
-        N.Nag_Stop_f++;
-        return;
-    }
-       N.Run_index++;//如果需要跑两圈可以直接把这个赋值为0.
-    
-       prospect=N.Run_index ;//前瞻
-       if(prospect >N.Save_index-2)  prospect=N.Save_index-2;//越界保护
-       N.Angle_Run = (Nav_read[prospect]/100.0f);  
-       if(N.Mileage_All > 0) N.Mileage_All -= Nag_Set_mileage;//重置历程计数字//保存到flash
-       else N.Mileage_All += Nag_Set_mileage;   //倒车
-    }
+        while (playback_index < waypoint_count && 
+               total_accumulated_distance >= path_buffer[playback_index].distance) 
+        {
+            playback_index++; 
+        }
 
-
-}
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     惯导参数初始化
-// 返回参数     void
-// 使用示例     放入程序执行开始
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void Init_Nag()
-{
-    memset(&N, 0, sizeof(N));
-    N.Flash_page_index=Nag_Start_Page;
-    flash_buffer_clear();
-}
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     惯性导航执行函数
-// 参数说明     index           索引
-// 参数说明     type            类型值
-// 返回参数     void
-// 使用示例     放入中断中
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void Nag_System(){
-    //卫保护
-    if(!N.Nag_SystemRun_Index || N.Nag_Stop_f )  return;
-
-    switch(N.Nag_SystemRun_Index)
-    {
-       case 1 : Nag_Read();    //1是读取
-            break;
-      case 3: Nag_Run();
-            break;
+        if (playback_index < waypoint_count) 
+        {
+            nav_target_yaw = path_buffer[playback_index].yaw; 
+            nav_target_speed = auto_playback_speed_setpoint;  
+        } 
+        else 
+        {
+            nav_target_speed = 0.0f; 
+            nav_target_yaw = path_buffer[waypoint_count - 1].yaw; 
+            printf("--- 到达终点，自动停车 ---\r\n"); 
+            nav_set_state(NAV_STATE_IDLE); 
+        }
     }
 }
-
-
-//-------------------------------------------------------------------------------------------------------------------
-// 函数简介     一次性读取程序，只读取一次！
-// 参数说明     index           索引
-// 参数说明     type            类型值
-// 返回参数     void
-// 使用示例     放入主函数直接调用，demo中有示例。
-// 备注信息
-//-------------------------------------------------------------------------------------------------------------------
-void NagFlashRead(){
-  if(N.Save_state) return;
-  flash_Nag_Read();
-  uint8 page_trun=0;
-  
-  for(int index=0;index <= N.Save_index;index++)
-  {
-    if(index >= N.Save_index)
-    {
-        N.Save_state=1;
-        break;
-    }
-    int temp_index=index-(500*page_trun);
-    if(temp_index >MaxSize)    //当大于设定的flsh大小的时候
-    {
-        N.Flash_page_index--;   //页面减少
-        page_trun++;
-        flash_Nag_Read(); //重新读取
-    }
-     Nav_read[index]= flash_union_buffer[index-(500*page_trun)].int32_type;
-  }
-  N.Nag_SystemRun_Index++;
-}
-

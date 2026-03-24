@@ -1,20 +1,23 @@
 #ifndef _BALANCE_CONTROL_H_
 #define _BALANCE_CONTROL_H_
 #include "zf_common_headfile.h"
+
 typedef struct _IMU660RA_Parameter_t
 {
     float Pitch;
     float Roll;
     float Yaw;
 }IMU660RB_Parameter_t;
+
 typedef struct
 {
-   float  output;//输出写错了
+   float  output;
    float  err1;
    float  err2;
    float  sum;
    float  use;
 }pid_v;
+
 typedef struct
 {
    float  output;
@@ -23,6 +26,7 @@ typedef struct
    float  sum;
    float  use;
 }pid_J;
+
 typedef struct
 {
    float  output;
@@ -43,14 +47,12 @@ typedef struct
 
 typedef struct
 {
-
    float  output;
    float  err1;
    float  err2;
    float  sum;
    float  use;
 }pid_turnz;
-
 
 typedef struct
 {
@@ -84,16 +86,9 @@ extern float Turn_KP ,Turn_KP2 ,Turn_KD ,Turn_KD2,TurnzZ_KP,TurnzZ_KP2,Turn_KDz2
 extern float Angle_KP ,Angle_KD ;
 extern float Angle_KP_Temp ;
 
-
-
-
-
 extern float speed_Temp;
 extern float Encoder_pre;
 extern int Run_Flag ;
-
-
-
 
 extern float Machine_Mid ;
 extern float speedout;
@@ -102,14 +97,13 @@ extern IMU660RB_Parameter_t  IMU660RB_Parameter;
 
 extern float Left_OUT_Finally , Right_OUT_Finally ;//电机最后赋值操作
 extern float angleout;
+extern float lunOUT;
 
-
-
-
-
+// ================== 新增：编码器闭环同步相关变量 ==================
+extern float Sync_Kp;
+extern float Sync_Ki;
+extern float sync_out;
 
 void callback (void);
 
-
-
-#endif 
+#endif
