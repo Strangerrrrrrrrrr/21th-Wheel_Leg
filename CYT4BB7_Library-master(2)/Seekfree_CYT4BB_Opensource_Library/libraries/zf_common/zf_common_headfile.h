@@ -109,9 +109,7 @@
 #include "small_driver_uart_control.h"
 #include "balance_control.h"
 #include "initialize.h"
-#include "servo.h"
-#include "flash.h"
-#include "param_tuning.h"        
+#include "servo.h"    
 #include "remote_control.h"
-#include "navigation.h" 
+#include "pure_nav.h"                                  
 #endif

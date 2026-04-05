@@ -109,7 +109,7 @@ typedef enum
 {
     GPS_STATE_RECEIVING,                                                        // 正在接收数据
     GPS_STATE_RECEIVED,                                                         // 数据接收完成
-    GPS_STATE_PARSING,                                                          // 正在解析
+    GPS_STATE_PARSING, // 正在解析
 }gps_state_enum;
 
 extern gnss_info_struct gnss;

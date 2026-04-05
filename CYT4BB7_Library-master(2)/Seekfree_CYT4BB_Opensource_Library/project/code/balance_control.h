@@ -9,74 +9,21 @@ typedef struct _IMU660RA_Parameter_t
     float Yaw;
 }IMU660RB_Parameter_t;
 
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_v;
-
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_J;
-
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_JV;
-
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_turn;
-
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_turnz;
-
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_turnsing;
-
-typedef struct
-{
-   float  output;
-   float  err1;
-   float  err2;
-   float  sum;
-   float  use;
-}pid_ROLL;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_v;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_J;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_JV;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_turn;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_turnz;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_turnsing;
+typedef struct { float output; float err1; float err2; float sum; float use; } pid_ROLL;
 
 extern float Encoder;
 extern int duty_YAW;
+
 float speed_Velocity (pid_v*k, float target, float actual_value);
 float Gyro_PIDVelocity (pid_JV*k, float target, float actual_value);
 float Angle_Velocity (pid_J*k, float target, float actual_value);
+float TurnZ_PID(pid_turnz* k, float target, float actual_value); 
 
 extern float ROLL_PID (pid_ROLL*k, float target, float actual_value);
 extern pid_ROLL  pidROLL;
@@ -95,14 +42,9 @@ extern float speedout;
 extern float speed_limit;
 extern IMU660RB_Parameter_t  IMU660RB_Parameter;
 
-extern float Left_OUT_Finally , Right_OUT_Finally ;//电机最后赋值操作
+extern float Left_OUT_Finally , Right_OUT_Finally ;
 extern float angleout;
 extern float lunOUT;
-
-// ================== 新增：编码器闭环同步相关变量 ==================
-extern float Sync_Kp;
-extern float Sync_Ki;
-extern float sync_out;
 
 void callback (void);
 

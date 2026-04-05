@@ -44,80 +44,54 @@ int main(void)
     // 此处编写用户代码 例如外设初始化代码等
   
          all_init();
-         int print_count = 0;
+         pure_nav_init();
+         
+         int display_count = 0;          // 屏幕刷新降频计数器
+      //   int print_count = 0;
    // int print_count = 0; // 定义一个打印计数器
     
     // 此处编写用户代码 例如外设初始化代码等
     while(true)
     {
       // 此处编写需要循环执行的代码
-      // param_ui_process();
-     // printf("%f,%f,%f,%f,%f,%f\n",g_attitude.pitch,g_attitude.yaw,g_attitude.roll ,IMU_TRAN.gyroX,IMU_TRAN.gyroY,IMU_TRAN.gyroZ);
-      // printf("%f,%d,%d,%f,%d,%f\n",speedout,steer_output_duty,error1,Encoder_pre,motor_value.receive_left_speed_data,IMU_TRAN.gyroZ);
-       //small_driver_set_duty(500,500);
-       //  system_delay_ms(10);
-      // 循环执行遥控器任务
-         //  if(mt9v03x_finish_flag)
-        //   {
-        //     ips200_displayimage03x(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);
-           
-         //      mt9v03x_finish_flag=0;
-        //   }
-       //remote_control_process(); 
+    // ---------------------------------------------------------
+        // 1. 遥控器接收与状态机处理 (大脑中枢，必须不断循环)
+        // ---------------------------------------------------------
+        remote_control_process(); 
        
-       if (key_get_state(KEY_1) == KEY_SHORT_PRESS) 
+        // ---------------------------------------------------------
+        // 2. 屏幕动态数据刷新 (降频执行，防止耗尽 CPU 时间阻碍控制)
+        // ---------------------------------------------------------
+        display_count++;
+        if(display_count >= 1000) // 这个值可以根据屏幕闪烁程度自行改大或改小
         {
-            if (current_nav_state == NAV_STATE_IDLE && waypoint_count > 0)
-            {
-                Run_Flag = 1;                      
-                nav_set_state(NAV_STATE_PLAYBACK); 
+            display_count = 0;
+            
+            // 刷新当前导航状态
+            if (pure_nav_state == PURE_NAV_IDLE) {
+                ips200_set_color(RGB565_BLACK, RGB565_WHITE);
+                ips200_show_string(80, 40, "IDLE    "); 
+            } else if (pure_nav_state == PURE_NAV_RECORDING) {
+                ips200_set_color(RGB565_RED, RGB565_WHITE); 
+                ips200_show_string(80, 40, "RECORD  ");
+            } else if (pure_nav_state == PURE_NAV_PLAYBACK) {
+                ips200_set_color(RGB565_GREEN, RGB565_WHITE); 
+                ips200_show_string(80, 40, "PLAYBACK");
             }
-            key_clear_state(KEY_1);                
-        }
 
-        if (key_get_state(KEY_2) == KEY_SHORT_PRESS)
-        {
-            if (current_nav_state == NAV_STATE_IDLE)
-            {
-                Run_Flag = 0;                      
-                nav_set_state(NAV_STATE_RECORDING);
-            }
-            key_clear_state(KEY_2);                
-        }
-
-        if (key_get_state(KEY_3) == KEY_SHORT_PRESS)
-        {
-            if (current_nav_state == NAV_STATE_RECORDING || current_nav_state == NAV_STATE_PLAYBACK)
-            {
-                Run_Flag = 0;                      
-                nav_set_state(NAV_STATE_IDLE);     // 会自动触发 Flash 保存
-            }
-            key_clear_state(KEY_3);                
-        }
-
-        // ======================= 屏幕 UI 刷新 =======================
-        if (current_nav_state == NAV_STATE_IDLE) {
+            // 刷新已记录的点位数量
             ips200_set_color(RGB565_BLACK, RGB565_WHITE);
-            ips200_show_string(80, 40, "IDLE    "); 
-        } else if (current_nav_state == NAV_STATE_RECORDING) {
-            ips200_set_color(RGB565_RED, RGB565_WHITE); 
-            ips200_show_string(80, 40, "RECORD  ");
-        } else if (current_nav_state == NAV_STATE_PLAYBACK) {
-            ips200_set_color(RGB565_GREEN, RGB565_WHITE); 
-            ips200_show_string(80, 40, "PLAYBACK");
-        }
+            ips200_show_uint(80, 70, pure_waypoint_count, 4);
 
-        ips200_set_color(RGB565_BLACK, RGB565_WHITE);
-        ips200_show_uint(80, 70, waypoint_count, 4);
-
-        // ======================= 5cm 里程标定监测打印 =======================
-        print_count++;
-        if(print_count >= 500000) // 减速打印，根据你的主频可以自行调大调小
-        {
-            print_count = 0;
-            // 看着这个数字，推 5 厘米，看数字增加了多少，然后填入 navigation.h
-            printf("当前里程计数值: %f\r\n", total_accumulated_distance);
+            // ========================================================
+            // 【里程标定小工具】：如果你想标定 5cm 到底对应多少脉冲，
+            // 可以取消下面两行的注释，看着屏幕推车记录 pure_current_x 的变化
+            // ========================================================
+            // ips200_show_float(80, 100, pure_current_x, 4, 1);
+            // ips200_show_float(80, 130, pure_current_y, 4, 1);
         }
+    }
+    
     }
       
       
@@ -127,4 +101,3 @@ int main(void)
 
 
 // **************************** 代码区域 ****************************
-}

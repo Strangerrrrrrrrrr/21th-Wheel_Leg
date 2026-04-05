@@ -4,7 +4,6 @@
 
 
 
-
 void all_init(void);
 void time_init (void);
 extern float Exposure;

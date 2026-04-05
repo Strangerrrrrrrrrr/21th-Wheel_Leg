@@ -1128,16 +1128,10 @@
             <name>$PROJ_DIR$\..\..\code\initialize.h</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\code\navigation.c</name>
+            <name>$PROJ_DIR$\..\..\code\pure_nav.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\..\code\navigation.h</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\code\param_tuning.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\..\code\param_tuning.h</name>
+            <name>$PROJ_DIR$\..\..\code\pure_nav.h</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\..\code\quaternion.c</name>
