@@ -1,0 +1,9 @@
+# 忽略编译生成的临时文件
+*.ninja_log
+Debug/
+obj/
+*.dep
+*.out
+*.tmp
+.claude/
+.vscode/
